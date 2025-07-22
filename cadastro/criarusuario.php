@@ -30,7 +30,7 @@
     ) VALUES ( ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssss", $nomeCompleto, $email, $telefone, $endereco,         $username, $password);
+    $stmt->bind_param("ssssss", $nomeCompleto, $email, $telefone, $endereco, $username, $password);
     
     if($stmt->execute()){
         echo json_encode([
