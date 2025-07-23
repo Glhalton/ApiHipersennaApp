@@ -1,7 +1,20 @@
 <?php
-    header("Content-Type: application/json");
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+
+// Ler input só uma vez
+$rawInput = file_get_contents('php://input');
+$data = json_decode($rawInput, true);
+
+try {
 
     include_once "../conexao.php";
+
+    $input = json_decode($rawInput, true);
+    if($input === null) {
+        throw new Exception('Dados JSON invalidos');
+    }
 
     $entrada = json_decode(file_get_contents("php://input"), true); 
 
@@ -17,7 +30,7 @@
 
     echo $dataVencimentoFormat;
 
-    if (empty($codigoProduto) || empty($tipoInsercao) || empty($dataVencimento) || empty($codigoBonus) || empty($quantidade)){
+    if (empty($codigoProduto) || empty($tipoInsercao) || empty($dataVencimentoFormat) || empty($codigoBonus) || empty($quantidade)){
         echo json_encode([
             "sucesso" => false,
             "mensagem" => "Preencha todos os campos obrigatorios."
@@ -52,5 +65,10 @@
 
     $stmt->close();
     $conn->close();
-
-?>
+        
+} catch (Exception $e) {
+    http_response_code($e->getCode() ?: 500);
+    ob_end_clean();
+    echo json_encode(['sucesso' => false, 'mensagem' => $e->getMessage()]);
+    exit;
+}""
