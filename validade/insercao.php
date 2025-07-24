@@ -3,34 +3,31 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 
-// Ler input só uma vez
-$rawInput = file_get_contents('php://input');
-$data = json_decode($rawInput, true);
-
 try {
 
     include_once "../conexao.php";
 
-    $input = json_decode($rawInput, true);
-    if($input === null) {
+    $rawInput = file_get_contents("php://input"); 
+
+    $entrada = json_decode($rawInput, true);
+    if($entrada === null) {
         throw new Exception('Dados JSON invalidos');
     }
 
-    $entrada = json_decode(file_get_contents("php://input"), true); 
-
+    $codigoFilial = $entrada["codFilial"] ?? "";
     $codigoProduto = $entrada["codProd"] ?? "";
-    $tipoInsercao = $entrada["tipoInsercao"] ?? "";
     $dataVencimentoOrigin = $entrada["dataVencimento"] ?? "";
-    $codigoBonus = $entrada["codBonus"] ?? "";
     $quantidade = $entrada["quantidade"] ?? "";
-    $observacao = $observacao["observacao"] ?? "";
+    $observacao = $entrada["observacao"] ?? "";
+    $userId = $entrada["userId"] ?? "";
+
+    date_default_timezone_set('America/Sao_Paulo');
+    $dataAtual = date('Y-m-d');
 
 
     $dataVencimentoFormat = date('Y-m-d', strtotime($dataVencimentoOrigin));
 
-    echo $dataVencimentoFormat;
-
-    if (empty($codigoProduto) || empty($tipoInsercao) || empty($dataVencimentoFormat) || empty($codigoBonus) || empty($quantidade)){
+    if (empty($codigoFilial) || empty($codigoProduto) || empty($dataVencimentoFormat) || empty($quantidade)){
         echo json_encode([
             "sucesso" => false,
             "mensagem" => "Preencha todos os campos obrigatorios."
@@ -39,16 +36,17 @@ try {
     }
 
     $sql = "INSERT INTO validade(
-        codigoProduto,
-        tipoInsercao,
-        dataVencimento,
-        codigoBonus,
+        cod_filial,
+        cod_produto,
+        data_validade,
         quantidade,
-        textoObservacao
-    ) VALUES (?, ?, ?, ?, ?, ?)";
+        texto_obs,
+        criado_em,
+        colaborador_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssss", $codigoProduto, $tipoInsercao, $dataVencimento, $codigoBonus, $quantidade, $observacao);
+    $stmt->bind_param("sssssss", $codigoFilial, $codigoProduto, $dataVencimentoFormat, $quantidade, $observacao, $dataAtual, $userId);
 
     if($stmt->execute()){
         echo json_encode([
@@ -71,4 +69,6 @@ try {
     ob_end_clean();
     echo json_encode(['sucesso' => false, 'mensagem' => $e->getMessage()]);
     exit;
-}""
+}
+
+?>
