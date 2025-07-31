@@ -1,30 +1,73 @@
 <?php
 
-header("Content-Type: application/json");
+    //Cabeçalho
+    header("Content-Type: application/json");
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 
-include_once "../conexao.php";
+    try {
 
+        //Raliza a conexão com o banco de dados por meio dos dados do arquivo.
+        include_once "../conexao.php";
 
-$entrada = json_decode(file_get_contents("php://input"), true);
+        //Recebe os dados em formato JSON pela stream
+        $rawInput = file_get_contents("php://input");
 
-$username = $entrada["username"] ?? "";
-$password = $entrada["password"] ?? "";
+        //Transforma o JSON em uma array associativa PHP
+        $entrada = json_decode($rawInput, true);
 
-$sql = "SELECT id FROM usuarios WHERE username = ? AND password = ? LIMIT 1";
-$stmt = $conn->prepare($sql );
-$stmt->bind_param("ss", $username, $password);
-$stmt->execute();
-$result = $stmt->get_result();
+        if($entrada === null){
+            throw new Exception("Dados JSON inválidos: " . $rawInput);
+        }
 
-$user = $result->fetch_assoc();
+        //Recupera o valor de cada chave da array associativa "entrada"
+        $username = strtolower($entrada["username"] ?? "");
+        $password = $entrada["password"] ?? ""; 
 
-if($result->num_rows === 1){
-    echo json_encode(["sucesso" => true, "mensagem" => "Login correto!", "userId" => $user["id"]]);
-} else{
-    echo json_encode(["sucesso" => false, "mensagem" => "Usuário ou senha incorreta."]);
-}
+        //Verifica se os dados recebidos estão vazios
+        if(empty($username) || empty($password)){
+            http_response_code(400);
+            echo json_encode([
+                "sucesso" => false,
+                "mensagem" => "Preencha todos os campos."
+            ]);
+            exit;
+        }
 
-$stmt->close();
-$conn->close();
+        //Consulta SQL
+        $sql = "SELECT id FROM usuarios WHERE username = ? AND password = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+
+        //Define os dados que serão utilizados na consulta
+        $stmt->bind_param("ss", $username, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        //Verifica se teve resultado para enviar uma resposta
+        if($result->num_rows === 1){
+            http_response_code(200);
+            echo json_encode([
+                "sucesso" => true,
+                "mensagem" => "Login correto!",
+                "userId" => $user["id"]
+            ]);
+        }else{
+            http_response_code(401);
+            echo json_encode([
+                "sucesso" => false, 
+                "mensagem" => "Usuário ou senha incorreta."
+            ]);
+        }
+
+        $stmt->close();
+        $conn->close();
+
+    } catch (Exception $e){
+        http_response_code($e->getCode() ?: 500);
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => $e->getMessage()
+        ]);
+    }
 
 ?>
