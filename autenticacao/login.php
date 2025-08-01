@@ -35,16 +35,16 @@
         }
 
         //Consulta SQL
-        $sql = "SELECT id FROM usuarios WHERE username = ? AND password = ? LIMIT 1";
+        $sql = "SELECT id, password FROM usuarios WHERE username = ? ";
         $stmt = $conn->prepare($sql);
 
         //Define os dados que serão utilizados na consulta
-        $stmt->bind_param("ss", $username, $password);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
         //Verifica se teve resultado para enviar uma resposta
-        if($result->num_rows === 1){
+        if($result->num_rows === 1 && password_verify($password, $user["password"])){
             http_response_code(200);
             echo json_encode([
                 "sucesso" => true,

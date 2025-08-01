@@ -22,6 +22,9 @@
         $username = strtolower($entrada["username"] ?? "");
         $password = $entrada["password"] ?? "";
 
+        $password_crypto= password_hash($password, PASSWORD_DEFAULT);
+
+        
         if (empty($nomeCompleto) || empty($email) || empty($username) || empty($password)){
             http_response_code(400);
             echo json_encode([
@@ -40,7 +43,7 @@
             password
         ) VALUES ( ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssss", $nomeCompleto, $email, $telefone, $endereco, $username, $password);
+        $stmt->bind_param("ssssss", $nomeCompleto, $email, $telefone, $endereco, $username, $password_crypto);
 
         if($stmt->execute()){
             http_response_code(200);
