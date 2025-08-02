@@ -24,8 +24,8 @@
 
         $password_crypto= password_hash($password, PASSWORD_DEFAULT);
 
-        
-        if (empty($nomeCompleto) || empty($email) || empty($username) || empty($password)){
+
+        if (empty($nomeCompleto) || empty($username) || empty($password)){
             http_response_code(400);
             echo json_encode([
                 "sucesso" => false,
@@ -33,6 +33,20 @@
             ]);
             exit;
         }
+
+        $sql = "SELECT id FROM usuarios WHERE username = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if($result->num_rows > 0){
+            echo json_encode([
+                "sucesso" => false,
+                "mensagem" => "Nome de usuário já existe."]);
+            exit;
+        }
+
 
         $sql = "INSERT INTO usuarios( 
             name, 
