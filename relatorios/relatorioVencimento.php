@@ -58,6 +58,21 @@ try {
 
     }
 
+    $sql = "SELECT * FROM produtos WHERE codauxiliar = ? ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $codigoProduto);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 0) {
+        http_response_code(400);
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Codigo de produto inexistente."
+        ]);
+        exit;
+    }
+
     $sql = "SELECT * FROM validade  WHERE cod_produto = ? AND cod_filial = ?  AND data_validade >= ? AND data_validade <= ?";
     $stmt = $conn->prepare($sql);
 
@@ -81,7 +96,7 @@ try {
         http_response_code(404);
         echo json_encode([
             "sucesso" => false,
-            "mensagem" => "Sem dados a exibir",
+            "mensagem" => "Sem dados de validade",
         ]);
     }
 
