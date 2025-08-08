@@ -58,6 +58,59 @@ try {
 
     }
 
+    $sql = "    SELECT
+        vp.id AS `id`,
+        vp.cod_filial AS `filial`,
+        vp.cod_produto AS `codprod`,
+        p.descricao AS `desc`,
+        p.codepto AS `dp`,
+        vp.quantidade AS `quant`,
+        p.codfornec AS `codfornec`,
+        pc.codcomprador AS `codcomp`,
+        DATE_FORMAT(vp.criado_em, '%d/%m/%Y') AS `data_insercao`,
+        c.matricula AS `matricula_colaborador`,
+        c.nome AS `nome_colaborador`,
+        e.nome AS `nomecomprador`,
+        DATE_FORMAT(vp.data_validade, '%d/%m/%Y') AS `data_validade`,
+        DATEDIFF(vp.data_validade, CURDATE()) AS `dias_restantes`,
+        pcest1.qtvendmes AS `g1`,
+        pcest2.qtvendmes AS `g2`,
+        pcest3.qtvendmes AS `g3`,
+        pcest4.qtvendmes AS `g4`,
+        pcest5.qtvendmes AS `g5`,
+        pcest7.qtvendmes AS `g7`,
+        vt.tratativa AS `tratativa`,
+        vs.status AS `status`,
+        vp.tratativa AS `idxtratativa`,
+        vp.status AS `idxstatus`
+    FROM
+        validade_produto vp
+    JOIN
+        usuarios c ON c.id = vp.colaborador_id
+    JOIN
+        produtos p ON p.id = vp.cod_produto
+    JOIN
+        validade_tratativas vt ON vt.id = vp.tratativa
+    JOIN
+        validade_status vs ON vs.id = vp.status
+    JOIN (
+        SELECT codfilial, codprod, MIN(codcomprador) AS codcomprador
+        FROM produto_comprador
+        GROUP BY codfilial, codprod
+    ) AS pc
+        ON pc.codprod = vp.cod_produto 
+        AND pc.codfilial = vp.cod_filial
+    -- JOIN por filial específica para cada coluna:
+    LEFT JOIN empregados e ON e.matricula = pc.codcomprador
+    LEFT JOIN pcest AS pcest1 ON pcest1.codfilial = 1 AND pcest1.codprod = vp.cod_produto
+    LEFT JOIN pcest AS pcest2 ON pcest2.codfilial = 2 AND pcest2.codprod = vp.cod_produto
+    LEFT JOIN pcest AS pcest3 ON pcest3.codfilial = 3 AND pcest3.codprod = vp.cod_produto
+    LEFT JOIN pcest AS pcest4 ON pcest4.codfilial = 4 AND pcest4.codprod = vp.cod_produto
+    LEFT JOIN pcest AS pcest5 ON pcest5.codfilial = 5 AND pcest5.codprod = vp.cod_produto
+    LEFT JOIN pcest AS pcest7 ON pcest7.codfilial = 7 AND pcest7.codprod = vp.cod_produto
+    ";
+
+
     $sql = "SELECT * FROM produtos WHERE codauxiliar = ? ";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $codigoProduto);
