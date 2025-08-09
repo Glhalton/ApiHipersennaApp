@@ -126,7 +126,21 @@ try {
         exit;
     }
 
-    $sql = "SELECT * FROM validade  WHERE cod_produto = ? AND cod_filial = ?  AND data_validade >= ? AND data_validade <= ?";
+
+
+    $sql = "
+SELECT 
+    validade.*, 
+    produtos.descricao  AS nome_produto
+FROM 
+    validade
+JOIN 
+    produtos ON validade.cod_produto = produtos.id
+WHERE 
+    validade.cod_produto  = ? 
+    AND validade.cod_filial = ?  
+    AND validade.data_validade >= ? 
+    AND validade.data_validade <= ?";
     $stmt = $conn->prepare($sql);
 
     $stmt->bind_param("ssss", $codigoProduto, $codigoFilial, $dataInicial, $dataFinal);
