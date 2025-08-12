@@ -14,40 +14,11 @@ try {
         throw new Exception("Dados JSON invalidos: " . $rawInput);
     }
 
-    $codigoFilial = $entrada["codFilial"] ?? "";
-    $codigoProduto = $entrada["codProd"] ?? "";
-    $dataVencimentoOrigin = $entrada["dataVencimento"] ?? "";
-    $quantidade = $entrada["quantidade"] ?? "";
-    $observacao = $entrada["observacao"] ?? "";
     $userId = $entrada["userId"] ?? "";
-    $dataAtual = date('Y-m-d');
+    $itens = $entrada["itens"];
 
     date_default_timezone_set('America/Sao_Paulo');
-    $dataVencimentoFormat = date('Y-m-d', strtotime($dataVencimentoOrigin));
-
-    if (empty($codigoFilial) || empty($codigoProduto) || empty($dataVencimentoFormat) || empty($quantidade)) {
-        http_response_code(400);
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Preencha todos os campos obrigatorios."
-        ]);
-        exit;
-    }
-
-    $sql = "SELECT * FROM produtos WHERE codauxiliar = ? ";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $codigoProduto);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows == 0) {
-        http_response_code(400);
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Codigo de produto inexistente."
-        ]);
-        exit;
-    }
+    $dataAtual = date('Y-m-d');
 
     $sql = "INSERT INTO validade(
             cod_filial,
@@ -58,25 +29,53 @@ try {
             criado_em,
             colaborador_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssss", $codigoFilial, $codigoProduto, $dataVencimentoFormat, $quantidade, $observacao, $dataAtual, $userId);
+    $stmtInsert = $conn->prepare($sql);
 
-    if ($stmt->execute()) {
+    $sql = "SELECT * FROM produtos WHERE codauxiliar = ? ";
+    $stmtSelect = $conn->prepare($sql);
+
+    foreach ($itens as $item) {
+        $codigoProduto = $item["codProd"] ?? "";
+        $codigoFilial = $item["codFilial"] ?? "";
+        $dataVencimentoOrigin = $item["dataVencimento"] ?? "";
+        $dataVencimentoFormat = date('Y-m-d', strtotime($dataVencimentoOrigin));
+        $quantidade = $item["quantidade"] ?? "";
+        $observacao = $item["observacao"] ?? "";
+
+
+        if (empty($codigoFilial) || empty($codigoProduto) || empty($dataVencimentoFormat) || empty($quantidade)) {
+            throw new Exception("Preencha todos os campos obrigatórios.");
+        }
+
+
+        $stmtSelect->bind_param("s", $codigoProduto);
+        $stmtSelect->execute();
+        $result = $stmtSelect->get_result();
+
+        if ($result->num_rows == 0) {
+            throw new Exception("Código de produto inexistente: $codigoProduto");
+        }
+
+
+        $stmtInsert->bind_param("sssssss", $codigoFilial, $codigoProduto, $dataVencimentoFormat, $quantidade, $observacao, $dataAtual, $userId);
+
+        if (!$stmtInsert->execute()) {
+            throw new Exception("Erro ao cadastrar validade: " . $stmtInsert->error);
+        } 
+
+    }
+
+    $stmtSelect->close();
+    $stmtInsert->close();
+    $conn->close();
+
+   
         http_response_code(200);
         echo json_encode([
             "sucesso" => true,
             "mensagem" => "Validade cadastrada com sucesso!",
         ]);
-    } else {
-        http_response_code(401);
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Erro ao cadastrar validade: " . $stmt->error
-        ]);
-    }
-
-    $stmt->close();
-    $conn->close();
+ 
 
 } catch (Exception $e) {
     http_response_code($e->getCode() ?: 500);
