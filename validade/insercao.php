@@ -14,8 +14,8 @@ try {
         throw new Exception("Dados JSON invalidos: " . $rawInput);
     }
 
-    $userId = $entrada["userId"] ?? "";
     $itens = $entrada["itens"];
+    $userId = $entrada["userId"] ?? "";
 
     date_default_timezone_set('America/Sao_Paulo');
     $dataAtual = date('Y-m-d');
@@ -61,7 +61,7 @@ try {
 
         if (!$stmtInsert->execute()) {
             throw new Exception("Erro ao cadastrar validade: " . $stmtInsert->error);
-        } 
+        }
 
     }
 
@@ -69,13 +69,13 @@ try {
     $stmtInsert->close();
     $conn->close();
 
-   
-        http_response_code(200);
-        echo json_encode([
-            "sucesso" => true,
-            "mensagem" => "Validade cadastrada com sucesso!",
-        ]);
- 
+
+    http_response_code(200);
+    echo json_encode([
+        "sucesso" => true,
+        "mensagem" => "Validade cadastrada com sucesso!",
+    ]);
+
 
 } catch (Exception $e) {
     http_response_code($e->getCode() ?: 500);
