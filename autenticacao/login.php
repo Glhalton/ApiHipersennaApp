@@ -42,7 +42,7 @@ try {
     }
 
     //Consulta SQL
-    $sql = "SELECT id, password FROM usuarios WHERE username = ? ";
+    $sql = "SELECT id,nivel_acesso_id, password FROM usuarios WHERE username = ? ";
     $stmt = $conn->prepare($sql);
 
     //Define os dados que serão utilizados na consulta
@@ -56,7 +56,8 @@ try {
         echo json_encode([
             "sucesso" => true,
             "mensagem" => "Login correto!",
-            "userId" => $user["id"]
+            "userId" => $user["id"],
+            "nivelAcesso" => $user["nivel_acesso_id"]
         ]);
     } else {
         http_response_code(401);
