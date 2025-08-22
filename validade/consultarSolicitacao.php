@@ -14,33 +14,76 @@ try {
         throw new Exception("Dados JSON invalidos: " . $rawInput);
     }
 
+    
     $userId = $entrada["userId"] ?? "";
+    
+    $sql = "SELECT 
+    	sv.id as solicitacao_id,
+        sv.criado_em,
+        sv.analista_id,
+        sv.status,
+        sv.cod_filial,
+        sp.cod_produto
+    FROM solicitacao_vistoria sv 
+    INNER JOIN solicitacao_produtos sp 
+    ON sv.id = sp.solicitacao_vistoria_id
+    WHERE sv.conferente_id = ?
+    ORDER BY sv.id";
 
-    $sql = "SELECT * FROM solicitacao_vistoria WHERE conferente_id = ? ";
+
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $userId);
+    $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
-    $dados = $result->fetch_assoc();
+    $dados = [];
+    $solicitacaoInfo = [];
+    $solicitacoes = [];
 
+    while ($row = $result->fetch_assoc()) {
+        $id = $row['solicitacao_id'];
 
-    if ($result->num_rows >= 1) {
-        http_response_code(200);
-        echo json_encode([
-            "sucesso" => true,
-            "dados" => $dados,
-            "codProd" => $dados["cod_produto"],
-            "filial" => $dados["cod_filial"],
-            "status" => $dados["status"],
-            "dataSolicitacao" => $dados["criado_em"]
-        ]);
-    } else {
-        http_response_code(401);
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Nenhuma solicitação encontrada."
-        ]);
+        // se ainda não existe essa solicitação no array, cria
+        if (!isset($solicitacoes[$id])) {
+            $solicitacoes[$id] = [
+                "cod_filial" => $row["cod_filial"],
+                "status" => $row["status"],
+                "dataSolicitacao" => $row["criado_em"],
+                "analistaId" => $row["analista_id"],
+                "produtos" => [] // array para os produtos
+            ];
+        }
+
+        // adiciona o produto à solicitação
+        $solicitacoes[$id]["produtos"][] = [
+            "cod_produto" => $row["cod_produto"]
+        ];
     }
+
+    // reindexa para ficar um array simples, não associativo
+    $solicitacoes = array_values($solicitacoes);
+
+    http_response_code(200);
+    echo json_encode([
+        "sucesso" => true,
+        "solicitacoes" => $solicitacoes
+    ]);
+
+
+    // if ($result->num_rows >= 1) {
+
+    //     http_response_code(200);
+    //     echo json_encode([
+    //         "sucesso" => true,
+    //         "dados" => $dados,
+    //         "solicitacaoInfo" => $solicitacaoInfo
+    //     ]);
+    // } else {
+    //     http_response_code(401);
+    //     echo json_encode([
+    //         "sucesso" => false,
+    //         "mensagem" => "Nenhuma solicitação encontrada."
+    //     ]);
+    // }
 
     $stmt->close();
     $conn->close();

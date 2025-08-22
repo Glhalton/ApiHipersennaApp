@@ -20,13 +20,15 @@ try {
     $codConferente = $entrada["codConferente"] ?? "";
     date_default_timezone_set('America/Sao_Paulo');
     $dataAtual = date('Y-m-d');
+    $status = "Aberto";
 
     $sql1 = "INSERT INTO solicitacao_vistoria(
             cod_filial,
             conferente_id,
             analista_id,
-            criado_em
-        ) VALUES (?, ?, ?, ?)";
+            criado_em,
+            status
+        ) VALUES (?, ?, ?, ?, ?)";
     $stmtInsert1 = $conn->prepare($sql1);
 
     $sql2 = "INSERT INTO solicitacao_produtos(
@@ -40,7 +42,7 @@ try {
         throw new Exception("Preencha todos os campos obrigatórios.");
     }
 
-    $stmtInsert1->bind_param("iiis", $codFilial,$codConferente, $userId, $dataAtual);
+    $stmtInsert1->bind_param("iiiss", $codFilial,$codConferente, $userId, $dataAtual, $status);
 
     if (!$stmtInsert1->execute()) {
         throw new Exception("Erro ao cadastrar solicitação de validade: " . $stmtInsert1->error);
@@ -66,7 +68,6 @@ try {
     $stmtInsert1->close();
     $stmtInsert2->close();
     $conn->close();
-
 
     http_response_code(200);
     echo json_encode([

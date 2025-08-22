@@ -25,6 +25,7 @@
             ]);
             exit;
         }
+        
 
         $sql = "SELECT COUNT(*) AS quantidade FROM validade WHERE colaborador_id = ?";
         $stmt = $conn->prepare($sql);
@@ -33,9 +34,18 @@
         $result = $stmt->get_result();
         $vistorias = $result->fetch_assoc();
 
+        $sql2 = "SELECT name FROM usuarios where id = ?";
+        $stmt2 = $conn->prepare($sql2);
+        $stmt2->bind_param("s", $userId);
+        $stmt2->execute();
+        $result2 = $stmt2->get_result();
+        $primeiroNome = $result2->fetch_assoc();
+
+
         echo json_encode([
             "sucesso" => true,
-            "quantidade_vistorias" => $vistorias["quantidade"]
+            "quantidade_vistorias" => $vistorias["quantidade"],
+            "primeiroNome" => ucwords($primeiroNome["name"])
         ]);
 
         $stmt->close();
