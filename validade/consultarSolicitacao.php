@@ -14,19 +14,21 @@ try {
         throw new Exception("Dados JSON invalidos: " . $rawInput);
     }
 
-    
+
     $userId = $entrada["userId"] ?? "";
-    
+
     $sql = "SELECT 
     	sv.id as solicitacao_id,
         sv.criado_em,
         sv.analista_id,
-        sv.status,
+        ss.status,
         sv.cod_filial,
         sp.cod_produto
     FROM solicitacao_vistoria sv 
     INNER JOIN solicitacao_produtos sp 
     ON sv.id = sp.solicitacao_vistoria_id
+    inner join status_solicitacao ss 
+    on sv.status = ss.id
     WHERE sv.conferente_id = ?
     ORDER BY sv.id";
 
@@ -45,6 +47,7 @@ try {
         // se ainda não existe essa solicitação no array, cria
         if (!isset($solicitacoes[$id])) {
             $solicitacoes[$id] = [
+                "solicitacaoId" => $row["solicitacao_id"],
                 "cod_filial" => $row["cod_filial"],
                 "status" => $row["status"],
                 "dataSolicitacao" => $row["criado_em"],

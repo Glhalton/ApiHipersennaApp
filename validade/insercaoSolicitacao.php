@@ -20,7 +20,7 @@ try {
     $codConferente = $entrada["codConferente"] ?? "";
     date_default_timezone_set('America/Sao_Paulo');
     $dataAtual = date('Y-m-d');
-    $status = "Aberto";
+    $status = "1";
 
     $sql1 = "INSERT INTO solicitacao_vistoria(
             cod_filial,
