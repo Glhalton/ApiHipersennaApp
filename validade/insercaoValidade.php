@@ -2,7 +2,13 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 try {
 
     include_once "../conexao.php";
@@ -53,7 +59,7 @@ try {
         $codigoProduto = $item["codProd"] ?? "";
         $dataVencimento = date('Y-m-d', strtotime($item["dataVencimento"])) ?? "";
         $quantidade = $item["quantidade"] ?? "";
-        $texto_obs = $item["observacao"] ??"";
+        $texto_obs = $item["observacao"] ?? "";
 
         if (empty($codigoProduto) || empty($dataVencimento) || empty($quantidade)) {
             throw new Exception("Preencha todos os campos obrigatórios.");

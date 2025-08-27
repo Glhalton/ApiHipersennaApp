@@ -42,7 +42,7 @@ try {
     }
 
     //Consulta SQL
-    $sql = "SELECT id,nivel_acesso_id, password FROM usuarios WHERE username = ? ";
+    $sql = "SELECT id, nivel_acesso_id, password FROM usuarios WHERE username = ? ";
     $stmt = $conn->prepare($sql);
 
     //Define os dados que serão utilizados na consulta

@@ -2,7 +2,13 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 try {
 
     include_once "../conexao.php";
@@ -42,7 +48,7 @@ try {
         throw new Exception("Preencha todos os campos obrigatórios.");
     }
 
-    $stmtInsert1->bind_param("iiiss", $codFilial,$codConferente, $userId, $dataAtual, $status);
+    $stmtInsert1->bind_param("iiiss", $codFilial, $codConferente, $userId, $dataAtual, $status);
 
     if (!$stmtInsert1->execute()) {
         throw new Exception("Erro ao cadastrar solicitação de validade: " . $stmtInsert1->error);
