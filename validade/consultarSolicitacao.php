@@ -53,18 +53,22 @@ try {
         // se ainda não existe essa solicitação no array, cria
         if (!isset($solicitacoes[$id])) {
             $solicitacoes[$id] = [
-                "solicitacaoId" => $row["solicitacao_id"],
-                "cod_filial" => $row["cod_filial"],
+                "requestId" => $row["solicitacao_id"],
+                "branchId" => $row["cod_filial"],
+                "analystId" => $row["analista_id"],
                 "status" => $row["status"],
-                "dataSolicitacao" => $row["criado_em"],
-                "analistaId" => $row["analista_id"],
-                "produtos" => [] // array para os produtos
+                "createdAt" => $row["criado_em"],
+                "targetDate" => $row["criado_em"],
+                "products" => [] // array para os produtos
             ];
         }
 
         // adiciona o produto à solicitação
-        $solicitacoes[$id]["produtos"][] = [
-            "cod_produto" => $row["cod_produto"]
+        $solicitacoes[$id]["products"][] = [
+            "codProduct" => $row["cod_produto"],
+            "description" => "Produto Teste",
+            "validityDate" => "10/11/2027",
+            "productStatus" => 1
         ];
     }
 
